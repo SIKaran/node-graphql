@@ -1,5 +1,6 @@
 const express = require('express');
 const graphqlHTTP = require('express-graphql');
+const path = require('path');
 
 const schema = require('./graphql/schema');
 
@@ -13,6 +14,10 @@ app.use('/graphql', graphqlHTTP({
   graphiql: true,
   pretty: true,
 }));
+app.get('/', function(req, res) {
+  res.sendFile(path.join(__dirname + '/public/index.html'));
+});
+app.use(express.static('public'))
 
 app.listen(PORT, ()=>{
   console.log('Server is running on port '+PORT);

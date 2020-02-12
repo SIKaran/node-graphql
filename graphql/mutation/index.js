@@ -1,53 +1,91 @@
-/* eslint-disable no-unused-vars */
-const { noteType } = require('../nodeTypes');
-const {
-  GraphQLString,
-  GraphQLBoolean,
+const graphql = require('graphql');
+const BookModel = require('../../models/book');
+const AuthorModel = require('../../models/author');
+const { AuthorType, BookType } = require('../nodeTypes');
+
+const { 
+  GraphQLObjectType, 
+  GraphQLID, 
+  GraphQLString, 
   GraphQLInt,
-  GraphQLID
-} = require('graphql');
-const NoteService = require('../../services/NoteService');
+  GraphQLNonNull,
+} = graphql;
 
-const CreateNoteMutation = {
-  type: noteType,
-  args: {
-    content: { type: GraphQLString }
-  },
-  resolve: async (_, { content }) => {
-    const noteService = new NoteService();
-    const newNote = await noteService.createNote({ content });
-
-    return newNote;
+const Mutation = new GraphQLObjectType({
+  name: 'Mutation',
+  fields: {
+    addAuthor: {
+      type: AuthorType,
+      args: {
+        name: { type: new GraphQLNonNull(GraphQLString) },
+        age: { type: new GraphQLNonNull(GraphQLInt) },
+      },
+      resolve(parent, args){
+        let author = new AuthorModel({
+          name: args.name,
+          age: args.age,
+        });
+        return author.save()
+      }
+    },
+    removeAuthor: {
+      type: AuthorType,
+      args: {
+        id: { type: new GraphQLNonNull(GraphQLID) }
+      },
+      resolve(parent, args){
+        return AuthorModel.findByIdAndRemove(args.id);
+      }
+    },
+    updateAuthor: {
+      type: AuthorType,
+      args: {
+        id: { type: new GraphQLNonNull(GraphQLID) },
+        name: { type: GraphQLString },
+        age: { type: GraphQLInt },
+      },
+      resolve(parent, args){
+        return AuthorModel.findOneAndUpdate({id: args.id}, { $set: { name: args.name, age: args.age } }).exec();
+      }
+    },
+    addBook: {
+      type: BookType,
+      args: {
+        name: { type: new GraphQLNonNull(GraphQLString) },
+        pages: { type: new GraphQLNonNull(GraphQLInt) },
+        authorId: { type: new GraphQLNonNull(GraphQLID) },
+      },
+      resolve(parent, args){
+        let book = new BookModel({
+          name: args.name,
+          pages: args.pages,
+          authorId: args.authorId,
+        });
+        return book.save();
+      }
+    },
+    removeBook: {
+      type: BookType,
+      args: {
+        id: { type: new GraphQLNonNull(GraphQLID) }
+      },
+      resolve(parent, args){
+        return BookModel.findByIdAndRemove(args.id);
+      }
+    },
+    updateBook: {
+      type: BookType,
+      args: {
+        id: { type: new GraphQLNonNull(GraphQLID) },
+        name: { type: GraphQLString },
+        pages: { type: GraphQLInt },
+        authorId: { type: GraphQLString },
+      },
+      resolve(parent, args){
+        return BookModel.findOneAndUpdate({id: args.id}, {$set: {name: args.name, pages: args.pages, authorId: args.authorId}}).exec();
+      }
+    },
   }
-};
+});
 
-const DeleteNoteMutation = {
-  type: GraphQLID,
-  args: {
-    _id: { type: GraphQLID }
-  },
-  resolve: async (_, { _id }) => {
-    const noteService = new NoteService();
-    const res = await noteService.deleteNote(_id);
-
-    if (res.ok) {
-      return _id;
-    }
-  }
-};
-
-const UpdateNoteMutation = {
-  type: noteType,
-  args: {
-    _id: { type: GraphQLID },
-    content: { type: GraphQLString }
-  },
-  resolve: async (_, { _id, content }) => {
-    const noteService = new NoteService();
-    const updatedNote = await noteService.updateNote(_id, { content });
-
-    return updatedNote;
-  }
-};
-
-module.exports = { CreateNoteMutation, UpdateNoteMutation, DeleteNoteMutation };
+module.exports = { Mutation };

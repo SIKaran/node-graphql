@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Node Memo</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <link rel="stylesheet" href="./css/index.css">
+</head>
+
+<body>
+  <div class="container">
+    <h1>Node - Express - Graphql Demo</h1>
+    <br>
+    <div id="authorWrapper">
+      <div class="row"></div>
+    </div>
+  </div>
+  <script>
+    const getAuthor = async () => {
+      const res = await (await fetch('/graphql', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: `query{
+            authors{
+              id,
+              name,
+              age,
+            }
+          }`
+        })
+      })).json();
+      console.log(res);
+      const authorWrapper = document.querySelector('#authorWrapper');
+      const h1El = document.createElement('h4');
+      h1El.innerHTML = 'Authors';
+
+      res.data && res.data.authors && res.data.authors.forEach( author => {
+        const divEl = document.createElement('div');
+        divEl.className = 'col-12 col-sm-6 col-md-4 col-lg-3 mb-3';
+        divEl.innerHTML = `
+        <div class="card w-100">
+          <img src="/img/placeholder.jpeg" class="card-img-top" alt="${author.name}">
+          <div class="card-body">
+            <h5 class="card-title">${author.name}</h5>
+            <p class="card-text">Age: ${author.age}</p>
+          </div>
+        </div>
+        `
+        authorWrapper.querySelector('.row').append(divEl);
+      });
+    }
+    getAuthor();
+  </script>
+</body>
+
+</html>

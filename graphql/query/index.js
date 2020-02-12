@@ -1,16 +1,19 @@
-const { noteType } = require('../nodeTypes');
-const { GraphQLList } = require('graphql');
-const NoteService = require('../../services/NoteService');
+const graphql = require('graphql');
+const AuthorQuery = require('./author');
+const BookQuery = require('./book');
+const ProductQuery = require('./product');
 
-const NotesQuery = {
-  type: GraphQLList(noteType),
-  args: {},
-  resolve: async () => {
-    const noteService = new NoteService();
-    const notes = await noteService.getAllNotes();
+const { 
+  GraphQLObjectType,
+} = graphql;
 
-    return notes;
-  }
-};
+const RootQuery = new GraphQLObjectType({
+  name: 'RootQueryType',
+  fields: () => ({
+    ...AuthorQuery,
+    ...BookQuery,
+    ...ProductQuery,
+  })
+});
 
-module.exports = { NotesQuery };
+module.exports = { RootQuery };
